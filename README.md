@@ -82,3 +82,5 @@ The system follows a microservices architecture with:
 ## License
 
 MIT License - see LICENSE file for details.
+
+https://medium.com/@hamdan12mohd12/an-ai-co-pilot-for-air-traffic-controllers-532a749e9e47

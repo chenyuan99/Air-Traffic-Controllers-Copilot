@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATC Assistant System - Complete UI Demo</title>
+    <link rel="stylesheet" href="../src/ui/styles/overlay.css">
+    <link rel="stylesheet" href="../src/ui/styles/touch.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Simulated ATC Display Background */
+        .atc-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(34, 197, 94, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                linear-gradient(45deg, transparent 49%, rgba(255, 255, 255, 0.02) 50%, transparent 51%);
+            z-index: 1;
+        }
+
+        .atc-background::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            border: 2px solid rgba(34, 197, 94, 0.3);
+            border-radius: 50%;
+            background:
+                radial-gradient(circle, transparent 30%, rgba(34, 197, 94, 0.05) 31%, rgba(34, 197, 94, 0.05) 32%, transparent 33%),
+                radial-gradient(circle, transparent 60%, rgba(34, 197, 94, 0.05) 61%, rgba(34, 197, 94, 0.05) 62%, transparent 63%);
+        }
+
+        .atc-background::after {
+            content: 'EWR RADAR SCOPE';
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: rgba(34, 197, 94, 0.6);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        /* Demo Controls */
+        .demo-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 20000;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-controls h3 {
+            margin: 0 0 10px 0;
+            color: #ffffff;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .demo-controls button {
+            display: block;
+            width: 100%;
+            margin: 5px 0;
+            padding: 8px 12px;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: #ffffff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .demo-controls button:hover {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.6);
+        }
+
+        .demo-controls button:active {
+            background: rgba(59, 130, 246, 0.4);
+        }
+
+        /* Simulated aircraft blips */
+        .aircraft-blip {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        .aircraft-blip::after {
+            content: attr(data-callsign);
+            position: absolute;
+            top: -20px;
+            left: 12px;
+            color: #22c55e;
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.7;
+                transform: scale(1.2);
+            }
+        }
+
+        /* Info panel */
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            font-size: 12px;
+            max-width: 300px;
+            backdrop-filter: blur(10px);
+            z-index: 20000;
+        }
+
+        .info-panel h4 {
+            margin: 0 0 8px 0;
+            color: #3b82f6;
+            font-size: 14px;
+        }
+
+        .info-panel p {
+            margin: 4px 0;
+            line-height: 1.4;
+        }
+
+        /* Voice Interface Styles */
+        .voice-controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 20000;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            min-width: 200px;
+        }
+
+        .voice-controls h3 {
+            margin: 0 0 10px 0;
+            color: #ffffff;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .voice-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .voice-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            transition: all 0.3s ease;
+        }
+
+        .voice-indicator.listening {
+            background: #22c55e;
+            animation: pulse 1.5s infinite;
+        }
+
+        .voice-indicator.processing {
+            background: #f59e0b;
+            animation: spin 1s linear infinite;
+        }
+
+        .voice-transcript {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 8px;
+            border-radius: 4px;
+            margin: 8px 0;
+            min-height: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #22c55e;
+            border-left: 3px solid #22c55e;
+        }
+
+        .voice-commands-list {
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .voice-commands-list div {
+            margin: 2px 0;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+
+        .voice-commands-list div:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Touch Interface Styles */
+        .touch-demo-area {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 12px;
+            text-align: center;
+            z-index: 20000;
+            backdrop-filter: blur(10px);
+        }
+
+        .touch-demo-area.active {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .gesture-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 25000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .gesture-feedback.show {
+            opacity: 1;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Simulated ATC Background -->
+    <div class="atc-background"></div>
+
+    <!-- Simulated Aircraft Blips -->
+    <div class="aircraft-blip" style="top: 200px; left: 300px;" data-callsign="UAL123"></div>
+    <div class="aircraft-blip" style="top: 350px; left: 500px;" data-callsign="DAL456"></div>
+    <div class="aircraft-blip" style="top: 150px; left: 700px;" data-callsign="AAL789"></div>
+    <div class="aircraft-blip" style="top: 450px; left: 250px;" data-callsign="SWA321"></div>
+
+    <!-- Demo Controls -->
+    <div class="demo-controls">
+        <h3>Panel Controls</h3>
+        <button onclick="createAlertPanel()">Show Alert Panel</button>
+        <button onclick="createAircraftPanel()">Show Aircraft List</button>
+        <button onclick="createStatusPanel()">Show System Status</button>
+        <button onclick="createWeatherPanel()">Show Weather Panel</button>
+        <button onclick="simulateAlert()">Simulate Critical Alert</button>
+        <button onclick="toggleTheme()">Toggle Theme</button>
+        <button onclick="clearPanels()">Clear All Panels</button>
+    </div>
+
+    <!-- Voice Interface Controls -->
+    <div class="voice-controls">
+        <h3>Voice Interface</h3>
+        <div class="voice-status">
+            <div class="voice-indicator" id="voice-indicator"></div>
+            <span id="voice-status-text">Voice: Off</span>
+        </div>
+        <button onclick="toggleVoiceListening()"
+            style="width: 100%; margin-bottom: 8px; padding: 6px; background: rgba(34, 197, 94, 0.2); border: 1px solid #22c55e; color: #ffffff; border-radius: 4px; cursor: pointer;">Toggle
+            Voice</button>
+        <div class="voice-transcript" id="voice-transcript">Say "show aircraft" or "system status"...</div>
+        <div style="font-size: 11px; color: #94a3b8; margin-top: 8px;">
+            <strong>Try saying:</strong>
+            <div class="voice-commands-list">
+                <div>"show aircraft panel"</div>
+                <div>"hide alerts"</div>
+                <div>"system status"</div>
+                <div>"acknowledge alert"</div>
+                <div>"current weather"</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Touch Demo Area -->
+    <div class="touch-demo-area" id="touch-demo-area">
+        <div>
+            <strong>Touch Demo Area</strong><br>
+            Try: Tap, Double-tap, Long-press<br>
+            Swipe, Pinch, Two-finger gestures
+        </div>
+    </div>
+
+    <!-- Gesture Feedback -->
+    <div class="gesture-feedback" id="gesture-feedback"></div>
+
+    <!-- Info Panel -->
+    <div class="info-panel">
+        <h4>ATC Assistant System Demo</h4>
+        <p><strong>Instructions:</strong></p>
+        <p>• <strong>Panels:</strong> Drag headers, resize corners, use controls</p>
+        <p>• <strong>Voice:</strong> Click "Toggle Voice" and say commands</p>
+        <p>• <strong>Touch:</strong> Try gestures in the touch demo area</p>
+        <p>• <strong>Keyboard:</strong> F1-F3 for shortcuts</p>
+        <p>• <strong>Mobile:</strong> Touch any panel item for interactions</p>
+    </div>
+
+    <script>
+        // Simplified DisplayOverlaySystem for demo
+        class DemoOverlaySystem {
+            constructor() {
+                this.panels = new Map();
+                this.currentTheme = 'dark';
+                this.panelCounter = 0;
+                this.setupKeyboardShortcuts();
+            }
+
+            createPanel(type, title, content, config = {}) {
+                const panelId = `demo-panel-${++this.panelCounter}`;
+
+                const defaultConfig = {
+                    x: 100 + (this.panelCounter * 30),
+                    y: 100 + (this.panelCounter * 30),
+                    width: 320,
+                    height: 240,
+                    ...config
+                };
+
+                const panel = document.createElement('div');
+                panel.id = panelId;
+                panel.className = 'atc-overlay-panel panel-fade-in';
+
+                panel.innerHTML = `
+                    <div class="panel-header">
+                        <span class="panel-title">${title}</span>
+                        <div class="panel-controls">
+                            <button class="panel-minimize" onclick="togglePanel('${panelId}')">−</button>
+                            <button class="panel-close" onclick="removePanel('${panelId}')">×</button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="panel-content">${content}</div>
+                    </div>
+                `;
+
+                this.applyPanelStyle(panel, defaultConfig);
+                this.makeDraggable(panel);
+
+                document.body.appendChild(panel);
+                this.panels.set(panelId, { element: panel, config: defaultConfig });
+
+                return panelId;
+            }
+
+            applyPanelStyle(panel, config) {
+                const colors = this.getThemeColors();
+
+                panel.style.cssText = `
+                    position: fixed;
+                    left: ${config.x}px;
+                    top: ${config.y}px;
+                    width: ${config.width}px;
+                    height: ${config.height}px;
+                    background: ${colors.background};
+                    border: 1px solid ${colors.border};
+                    border-radius: 6px;
+                    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+                    color: ${colors.text};
+                    z-index: 15000;
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    font-size: 13px;
+                    resize: both;
+                    overflow: hidden;
+                    min-width: 200px;
+                    min-height: 150px;
+                `;
+            }
+
+            getThemeColors() {
+                const themes = {
+                    dark: {
+                        background: 'rgba(15, 23, 42, 0.95)',
+                        border: 'rgba(148, 163, 184, 0.3)',
+                        text: '#f1f5f9'
+                    },
+                    light: {
+                        background: 'rgba(255, 255, 255, 0.95)',
+                        border: 'rgba(100, 116, 139, 0.3)',
+                        text: '#1e293b'
+                    }
+                };
+                return themes[this.currentTheme];
+            }
+
+            makeDraggable(panel) {
+                const header = panel.querySelector('.panel-header');
+                let isDragging = false;
+                let startX, startY, startLeft, startTop;
+
+                header.style.cursor = 'move';
+
+                header.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startLeft = parseInt(panel.style.left);
+                    startTop = parseInt(panel.style.top);
+
+                    panel.style.zIndex = '16000';
+
+                    document.addEventListener('mousemove', onMouseMove);
+                    document.addEventListener('mouseup', onMouseUp);
+                });
+
+                const onMouseMove = (e) => {
+                    if (!isDragging) return;
+
+                    const deltaX = e.clientX - startX;
+                    const deltaY = e.clientY - startY;
+
+                    panel.style.left = (startLeft + deltaX) + 'px';
+                    panel.style.top = (startTop + deltaY) + 'px';
+                };
+
+                const onMouseUp = () => {
+                    isDragging = false;
+                    panel.style.zIndex = '15000';
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                };
+            }
+
+            setupKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'F1') {
+                        e.preventDefault();
+                        createAlertPanel();
+                    } else if (e.key === 'F2') {
+                        e.preventDefault();
+                        createAircraftPanel();
+                    } else if (e.key === 'F3') {
+                        e.preventDefault();
+                        createStatusPanel();
+                    }
+                });
+            }
+
+            toggleTheme() {
+                this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+
+                // Update all existing panels
+                for (const [id, panelData] of this.panels) {
+                    this.applyPanelStyle(panelData.element, panelData.config);
+                }
+            }
+
+            removePanel(panelId) {
+                const panelData = this.panels.get(panelId);
+                if (panelData) {
+                    panelData.element.classList.add('panel-fade-out');
+                    setTimeout(() => {
+                        if (panelData.element.parentNode) {
+                            panelData.element.parentNode.removeChild(panelData.element);
+                        }
+                        this.panels.delete(panelId);
+                    }, 300);
+                }
+            }
+
+            togglePanel(panelId) {
+                const panelData = this.panels.get(panelId);
+                if (panelData) {
+                    const body = panelData.element.querySelector('.panel-body');
+                    const isMinimized = body.style.display === 'none';
+
+                    body.style.display = isMinimized ? 'block' : 'none';
+                    panelData.element.style.height = isMinimized ? panelData.config.height + 'px' : '40px';
+                }
+            }
+
+            clearAll() {
+                for (const [id] of this.panels) {
+                    this.removePanel(id);
+                }
+            }
+        }
+
+        // Initialize demo system
+        const overlaySystem = new DemoOverlaySystem();
+
+        // Voice Interface Demo
+        class DemoVoiceInterface {
+            constructor() {
+                this.isListening = false;
+                this.recognition = null;
+                this.synthesis = window.speechSynthesis;
+                this.setupSpeechRecognition();
+            }
+
+            setupSpeechRecognition() {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    this.recognition = new SpeechRecognition();
+                    this.recognition.continuous = true;
+                    this.recognition.interimResults = true;
+                    this.recognition.lang = 'en-US';
+
+                    this.recognition.onstart = () => {
+                        this.updateVoiceStatus('listening', 'Voice: Listening...');
+                    };
+
+                    this.recognition.onresult = (event) => {
+                        let finalTranscript = '';
+                        for (let i = event.resultIndex; i < event.results.length; i++) {
+                            if (event.results[i].isFinal) {
+                                finalTranscript += event.results[i][0].transcript;
+                            }
+                        }
+
+                        if (finalTranscript) {
+                            this.processVoiceCommand(finalTranscript.toLowerCase().trim());
+                        }
+                    };
+
+                    this.recognition.onerror = (event) => {
+                        console.error('Speech recognition error:', event.error);
+                        this.updateVoiceStatus('error', 'Voice: Error');
+                    };
+
+                    this.recognition.onend = () => {
+                        if (this.isListening) {
+                            // Restart if we're supposed to be listening
+                            setTimeout(() => {
+                                if (this.isListening) {
+                                    this.recognition.start();
+                                }
+                            }, 1000);
+                        } else {
+                            this.updateVoiceStatus('off', 'Voice: Off');
+                        }
+                    };
+                }
+            }
+
+            toggleListening() {
+                if (!this.recognition) {
+                    this.speak('Speech recognition not supported in this browser');
+                    return;
+                }
+
+                if (this.isListening) {
+                    this.stopListening();
+                } else {
+                    this.startListening();
+                }
+            }
+
+            startListening() {
+                if (this.recognition) {
+                    this.isListening = true;
+                    this.recognition.start();
+                    this.speak('Voice interface activated');
+                }
+            }
+
+            stopListening() {
+                this.isListening = false;
+                if (this.recognition) {
+                    this.recognition.stop();
+                }
+                this.updateVoiceStatus('off', 'Voice: Off');
+                this.speak('Voice interface deactivated');
+            }
+
+            processVoiceCommand(command) {
+                this.updateVoiceStatus('processing', 'Voice: Processing...');
+                document.getElementById('voice-transcript').textContent = `"${command}"`;
+
+                let response = 'Command not recognized';
+                let action = null;
+
+                // Process voice commands
+                if (command.includes('show aircraft') || command.includes('aircraft panel')) {
+                    action = () => createAircraftPanel();
+                    response = 'Showing aircraft panel';
+                } else if (command.includes('show alert') || command.includes('alert panel')) {
+                    action = () => createAlertPanel();
+                    response = 'Showing alert panel';
+                } else if (command.includes('show status') || command.includes('system status')) {
+                    action = () => createStatusPanel();
+                    response = 'Showing system status';
+                } else if (command.includes('show weather') || command.includes('weather panel')) {
+                    action = () => createWeatherPanel();
+                    response = 'Showing weather panel';
+                } else if (command.includes('hide aircraft')) {
+                    const panel = overlaySystem.findPanelByType('aircraft');
+                    if (panel) {
+                        action = () => overlaySystem.togglePanel(panel, false);
+                        response = 'Hiding aircraft panel';
+                    }
+                } else if (command.includes('hide alert')) {
+                    const panel = overlaySystem.findPanelByType('alert');
+                    if (panel) {
+                        action = () => overlaySystem.togglePanel(panel, false);
+                        response = 'Hiding alert panel';
+                    }
+                } else if (command.includes('acknowledge alert') || command.includes('ack alert')) {
+                    response = 'Alert acknowledged';
+                } else if (command.includes('clear all') || command.includes('clear panels')) {
+                    action = () => clearPanels();
+                    response = 'Clearing all panels';
+                } else if (command.includes('current weather') || command.includes('weather report')) {
+                    response = 'Current weather: Wind 270 at 12 knots, visibility 10 miles, temperature 15 celsius';
+                } else if (command.includes('help') || command.includes('commands')) {
+                    response = 'Available commands: show aircraft, show alerts, system status, acknowledge alert, current weather';
+                }
+
+                // Execute action and speak response
+                if (action) {
+                    action();
+                }
+
+                setTimeout(() => {
+                    this.speak(response);
+                    this.updateVoiceStatus('listening', 'Voice: Listening...');
+                }, 500);
+            }
+
+            speak(text) {
+                if (this.synthesis) {
+                    this.synthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 0.8;
+                    this.synthesis.speak(utterance);
+                }
+            }
+
+            updateVoiceStatus(state, text) {
+                const indicator = document.getElementById('voice-indicator');
+                const statusText = document.getElementById('voice-status-text');
+
+                indicator.className = `voice-indicator ${state}`;
+                statusText.textContent = text;
+            }
+        }
+
+        // Touch Interface Demo
+        class DemoTouchInterface {
+            constructor() {
+                this.setupTouchEvents();
+                this.lastTapTime = 0;
+                this.longPressTimer = null;
+                this.isLongPress = false;
+            }
+
+            setupTouchEvents() {
+                const touchArea = document.getElementById('touch-demo-area');
+
+                // Touch events
+                touchArea.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+                touchArea.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+                touchArea.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+
+                // Mouse events for desktop testing
+                touchArea.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                touchArea.addEventListener('mouseup', this.handleMouseUp.bind(this));
+
+                // Add touch events to interactive elements
+                document.addEventListener('touchstart', this.handleElementTouch.bind(this), { passive: false });
+                document.addEventListener('touchend', this.handleElementTouchEnd.bind(this), { passive: false });
+            }
+
+            handleTouchStart(event) {
+                event.preventDefault();
+                const touch = event.touches[0];
+                this.startTouch(touch.clientX, touch.clientY, event.touches.length);
+            }
+
+            handleMouseDown(event) {
+                this.startTouch(event.clientX, event.clientY, 1);
+            }
+
+            startTouch(x, y, fingerCount) {
+                const touchArea = document.getElementById('touch-demo-area');
+                touchArea.classList.add('active');
+
+                this.isLongPress = false;
+
+                // Start long press timer
+                this.longPressTimer = setTimeout(() => {
+                    this.isLongPress = true;
+                    this.showGestureFeedback('Long Press Detected');
+                    this.showQuickActions(x, y);
+                }, 500);
+
+                if (fingerCount > 1) {
+                    this.showGestureFeedback(`${fingerCount}-Finger Touch`);
+                }
+            }
+
+            handleTouchMove(event) {
+                if (this.longPressTimer) {
+                    clearTimeout(this.longPressTimer);
+                    this.longPressTimer = null;
+                }
+
+                if (event.touches.length === 2) {
+                    this.showGestureFeedback('Pinch/Zoom Gesture');
+                }
+            }
+
+            handleTouchEnd(event) {
+                this.endTouch();
+            }
+
+            handleMouseUp(event) {
+                this.endTouch();
+            }
+
+            endTouch() {
+                const touchArea = document.getElementById('touch-demo-area');
+                touchArea.classList.remove('active');
+
+                if (this.longPressTimer) {
+                    clearTimeout(this.longPressTimer);
+                    this.longPressTimer = null;
+                }
+
+                if (!this.isLongPress) {
+                    const now = Date.now();
+                    const timeSinceLastTap = now - this.lastTapTime;
+
+                    if (timeSinceLastTap < 300) {
+                        this.showGestureFeedback('Double Tap');
+                    } else {
+                        this.showGestureFeedback('Single Tap');
+                    }
+
+                    this.lastTapTime = now;
+                }
+            }
+
+            handleElementTouch(event) {
+                const target = event.target;
+                if (target.classList.contains('aircraft-item') ||
+                    target.classList.contains('alert-item') ||
+                    target.classList.contains('flight-strip')) {
+
+                    target.classList.add('touch-feedback');
+
+                    // Add ripple effect
+                    const ripple = document.createElement('div');
+                    ripple.className = 'touch-ripple-effect';
+                    ripple.style.cssText = `
+                        position: absolute;
+                        border-radius: 50%;
+                        background: rgba(59, 130, 246, 0.3);
+                        transform: scale(0);
+                        animation: ripple 0.6s linear;
+                        pointer-events: none;
+                    `;
+
+                    const rect = target.getBoundingClientRect();
+                    const touch = event.touches[0];
+                    const x = touch.clientX - rect.left;
+                    const y = touch.clientY - rect.top;
+
+                    ripple.style.left = (x - 25) + 'px';
+                    ripple.style.top = (y - 25) + 'px';
+                    ripple.style.width = '50px';
+                    ripple.style.height = '50px';
+
+                    target.style.position = 'relative';
+                    target.appendChild(ripple);
+
+                    setTimeout(() => {
+                        if (ripple.parentNode) {
+                            ripple.parentNode.removeChild(ripple);
+                        }
+                    }, 600);
+                }
+            }
+
+            handleElementTouchEnd(event) {
+                const target = event.target;
+                setTimeout(() => {
+                    target.classList.remove('touch-feedback');
+                }, 200);
+            }
+
+            showGestureFeedback(message) {
+                const feedback = document.getElementById('gesture-feedback');
+                feedback.textContent = message;
+                feedback.classList.add('show');
+
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                }, 1500);
+            }
+
+            showQuickActions(x, y) {
+                // Create quick action panel
+                const existingPanel = document.getElementById('demo-quick-actions');
+                if (existingPanel) {
+                    existingPanel.remove();
+                }
+
+                const quickPanel = document.createElement('div');
+                quickPanel.id = 'demo-quick-actions';
+                quickPanel.className = 'quick-action-panel quick-actions-visible';
+                quickPanel.style.left = x + 'px';
+                quickPanel.style.top = y + 'px';
+
+                quickPanel.innerHTML = `
+                    <button class="quick-action-button acknowledge" onclick="this.parentNode.remove(); showGestureFeedback('Acknowledged')">
+                        <span class="quick-action-icon">✓</span>
+                        <span class="quick-action-label">ACK</span>
+                    </button>
+                    <button class="quick-action-button" onclick="this.parentNode.remove(); showGestureFeedback('Edit Mode')">
+                        <span class="quick-action-icon">✏</span>
+                        <span class="quick-action-label">EDIT</span>
+                    </button>
+                    <button class="quick-action-button warning" onclick="this.parentNode.remove(); showGestureFeedback('More Info')">
+                        <span class="quick-action-icon">ⓘ</span>
+                        <span class="quick-action-label">INFO</span>
+                    </button>
+                `;
+
+                document.body.appendChild(quickPanel);
+
+                // Auto-remove after 3 seconds
+                setTimeout(() => {
+                    if (quickPanel.parentNode) {
+                        quickPanel.remove();
+                    }
+                }, 3000);
+            }
+        }
+
+        // Initialize interfaces
+        const voiceInterface = new DemoVoiceInterface();
+        const touchInterface = new DemoTouchInterface();
+
+        // Add helper function to overlay system
+        overlaySystem.findPanelByType = function (type) {
+            for (const [id, panel] of this.panels) {
+                if (panel.element.querySelector(`.${type}-container`)) {
+                    return id;
+                }
+            }
+            return null;
+        };
+
+        // Demo functions
+        function createAlertPanel() {
+            const content = `
+                <div class="alert-container">
+                    <div class="alert-header">System Alerts</div>
+                    <div class="alert-list">
+                        <div class="alert-item alert-critical touch-enabled" data-alert-id="alert-001">
+                            <div class="alert-time">${new Date().toLocaleTimeString()}</div>
+                            <div class="alert-message">Conflict detected: UAL123 and DAL456</div>
+                            <div class="alert-severity">CRITICAL</div>
+                        </div>
+                        <div class="alert-item alert-high touch-enabled" data-alert-id="alert-002">
+                            <div class="alert-time">${new Date().toLocaleTimeString()}</div>
+                            <div class="alert-message">Weather: Strong crosswinds on RWY 04L</div>
+                            <div class="alert-severity">HIGH</div>
+                        </div>
+                        <div class="alert-item alert-medium touch-enabled" data-alert-id="alert-003">
+                            <div class="alert-time">${new Date().toLocaleTimeString()}</div>
+                            <div class="alert-message">Radio: Non-standard phraseology detected</div>
+                            <div class="alert-severity">MEDIUM</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return overlaySystem.createPanel('alert', 'System Alerts', content, {
+                width: 380,
+                height: 280
+            });
+        }
+
+        function createAircraftPanel() {
+            const content = `
+                <div class="aircraft-container">
+                    <div class="aircraft-header">Active Aircraft</div>
+                    <div class="aircraft-list">
+                        <div class="aircraft-item touch-enabled" data-details="Route: KJFK-KEWR, ETA: 14:25, Squawk: 1234">
+                            <div class="aircraft-callsign">UAL123</div>
+                            <div class="aircraft-altitude">8500ft</div>
+                            <div class="aircraft-status">ARRIVING</div>
+                        </div>
+                        <div class="aircraft-item touch-enabled" data-details="Route: KEWR-KLAX, Departure: 14:30, Squawk: 5678">
+                            <div class="aircraft-callsign">DAL456</div>
+                            <div class="aircraft-altitude">12000ft</div>
+                            <div class="aircraft-status">DEPARTING</div>
+                        </div>
+                        <div class="aircraft-item touch-enabled" data-details="Gate: A12, Taxi Route: A-B-C, Ground Speed: 15kt">
+                            <div class="aircraft-callsign">AAL789</div>
+                            <div class="aircraft-altitude">3200ft</div>
+                            <div class="aircraft-status">TAXIING</div>
+                        </div>
+                        <div class="aircraft-item touch-enabled" data-details="Route: KORD-KEWR, ETA: 15:10, Squawk: 9012">
+                            <div class="aircraft-callsign">SWA321</div>
+                            <div class="aircraft-altitude">15000ft</div>
+                            <div class="aircraft-status">ARRIVING</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return overlaySystem.createPanel('aircraft', 'Active Aircraft', content, {
+                width: 300,
+                height: 320
+            });
+        }
+
+        function createStatusPanel() {
+            const content = `
+                <div class="status-container">
+                    <div class="status-header">System Status</div>
+                    <div class="status-indicators">
+                        <div class="status-item">
+                            <span class="status-label">ATC System:</span>
+                            <span class="status-value status-ok">Online</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Radar:</span>
+                            <span class="status-value status-ok">Active</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Weather:</span>
+                            <span class="status-value status-ok">Current</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Radio:</span>
+                            <span class="status-value status-warning">Degraded</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">AI Engine:</span>
+                            <span class="status-value status-ok">Ready</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return overlaySystem.createPanel('status', 'System Status', content, {
+                width: 280,
+                height: 220
+            });
+        }
+
+        function createWeatherPanel() {
+            const content = `
+                <div class="weather-container" style="padding: 10px;">
+                    <div style="font-weight: 600; margin-bottom: 12px; font-size: 12px; text-transform: uppercase;">Current Weather</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+                        <div><strong>Wind:</strong> 270° at 12kt</div>
+                        <div><strong>Visibility:</strong> 10 SM</div>
+                        <div><strong>Ceiling:</strong> 2500 ft</div>
+                        <div><strong>Temperature:</strong> 15°C</div>
+                        <div><strong>Pressure:</strong> 30.12 inHg</div>
+                        <div><strong>Conditions:</strong> Light Rain</div>
+                    </div>
+                    <div style="margin-top: 12px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-size: 10px; opacity: 0.8;">METAR: KEWR 121851Z 27012KT 10SM -RA BKN025 15/12 A3012</div>
+                    </div>
+                </div>
+            `;
+
+            return overlaySystem.createPanel('weather', 'Weather Display', content, {
+                width: 350,
+                height: 180
+            });
+        }
+
+        function simulateAlert() {
+            const alertPanel = createAlertPanel();
+
+            // Simulate blinking for critical alert
+            const panel = document.getElementById(alertPanel);
+            if (panel) {
+                let blinkCount = 0;
+                const blinkInterval = setInterval(() => {
+                    panel.style.opacity = panel.style.opacity === '0.5' ? '1' : '0.5';
+                    blinkCount++;
+
+                    if (blinkCount >= 6) {
+                        clearInterval(blinkInterval);
+                        panel.style.opacity = '1';
+                    }
+                }, 300);
+            }
+        }
+
+        function toggleTheme() {
+            overlaySystem.toggleTheme();
+        }
+
+        function clearPanels() {
+            overlaySystem.clearAll();
+        }
+
+        function removePanel(panelId) {
+            overlaySystem.removePanel(panelId);
+        }
+
+        function togglePanel(panelId) {
+            overlaySystem.togglePanel(panelId);
+        }
+
+        // Voice interface functions
+        function toggleVoiceListening() {
+            voiceInterface.toggleListening();
+        }
+
+        // Touch interface functions
+        function showGestureFeedback(message) {
+            touchInterface.showGestureFeedback(message);
+        }
+
+        // Auto-create some panels on load
+        setTimeout(() => {
+            createAlertPanel();
+            createAircraftPanel();
+        }, 1000);
+    </script>
+</body>
+
+</html>
