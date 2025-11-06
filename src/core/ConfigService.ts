@@ -87,7 +87,7 @@ export class ConfigService implements IConfigService {
         },
         redis: {
           url: process.env.REDIS_URL || 'redis://localhost:6379',
-          password: process.env.REDIS_PASSWORD
+          password: process.env.REDIS_PASSWORD || undefined
         }
       },
       alerts: {
@@ -123,7 +123,7 @@ export class ConfigService implements IConfigService {
         }).required(),
         redis: Joi.object({
           url: Joi.string().uri().required(),
-          password: Joi.string().optional()
+          password: Joi.string().allow('', null).optional()
         }).required()
       }).required(),
       alerts: Joi.object({

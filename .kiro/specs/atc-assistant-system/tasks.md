@@ -20,14 +20,20 @@
     - Create configuration for different OpenAI models (Whisper, GPT-4)
     - _Requirements: 1.1, 1.3_
 
-  - [ ] 2.2 Implement speech-to-text service using Whisper API
+  - [x] 2.2 Implement speech-to-text service using Whisper API
+
+
+
     - Create audio processing pipeline for ATC radio communications
     - Implement real-time audio streaming and chunking for Whisper API
     - Add aviation-specific vocabulary enhancement for better transcription accuracy
     - Create confidence scoring and uncertainty flagging system
     - _Requirements: 1.1, 1.5_
 
-  - [ ] 2.3 Build natural language processing service with GPT-4
+  - [x] 2.3 Build natural language processing service with GPT-4
+
+
+
     - Implement phraseology compliance checker using GPT-4 with aviation prompts
     - Create structured data extraction from radio communications
     - Build decision support agent for conflict resolution suggestions
